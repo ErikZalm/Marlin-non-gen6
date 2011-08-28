@@ -95,8 +95,8 @@ bool axis_relative_modes[] = {false, false, false, false};
 float acceleration = 2000;         // Normal acceleration mm/s^2
 float retract_acceleration = 7000; // Normal acceleration mm/s^2
 float max_jerk = 20*60;
-float max_start_speed_units_per_second[] = {25.0,25.0,0.2,10.0};
-long max_acceleration_units_per_sq_second[] = {3000,3000,50,10000}; // X, Y, Z and E max acceleration in mm/s^2 for printing moves or retracts
+float max_start_speed_units_per_second[] = {10.0,10.0,0.2,10.0};
+long max_acceleration_units_per_sq_second[] = {500,500,50,500}; // X, Y, Z and E max acceleration in mm/s^2 for printing moves or retracts
 #endif
 
 // Machine UUID

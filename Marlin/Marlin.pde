@@ -671,9 +671,12 @@ inline void process_commands()
         relative_mode = true;
         break;
       case 92: // G92
+        if(!code_seen(axis_codes[E_AXIS])) 
+        st_synchronize();
         for(int i=0; i < NUM_AXIS; i++) {
           if(code_seen(axis_codes[i])) current_position[i] = code_value();  
         }
+        plan_set_position(current_position[X_AXIS], current_position[Y_AXIS], current_position[Z_AXIS], current_position[E_AXIS]);
         break;
         
     }
