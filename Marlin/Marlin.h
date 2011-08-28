@@ -102,8 +102,8 @@ typedef struct {
 
   // Settings for the trapezoid generator
   long nominal_rate;                                 // The nominal step rate for this block in step_events/sec 
-  volatile long initial_rate;                                 // The jerk-adjusted step rate at start of block  
-  volatile long final_rate;                                   // The minimal rate at exit
+  volatile long initial_rate;                        // The jerk-adjusted step rate at start of block  
+  volatile long final_rate;                          // The minimal rate at exit
   long acceleration;                                 // acceleration mm/sec^2
   volatile char busy;
 } block_t;
