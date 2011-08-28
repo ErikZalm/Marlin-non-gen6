@@ -9,6 +9,6 @@ Features:
  - Interrupt based movement with real linear acceleration
  - High steprate
  - Look ahead (Keep the speed high when possible. High cornering speed)
- - Interrupt based temperature protection
+
 
 
