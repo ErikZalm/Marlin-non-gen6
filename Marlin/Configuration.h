@@ -81,7 +81,7 @@ const int Z_MAX_LENGTH = 100;
 
 //// MOVEMENT SETTINGS
 const int NUM_AXIS = 4; // The axis order in all axis related arrays is X, Y, Z, E
-float max_feedrate[] = {200000, 200000, 240, 500000};
+float max_feedrate[] = {200000, 200000, 150, 500000};
 float homing_feedrate[] = {1500,1500,120};
 bool axis_relative_modes[] = {false, false, false, false};
 
@@ -94,7 +94,8 @@ bool axis_relative_modes[] = {false, false, false, false};
 // X, Y, Z, E maximum start speed for accelerated moves. E default values are good for skeinforge 40+, for older versions raise them a lot.
 float acceleration = 2000;         // Normal acceleration mm/s^2
 float retract_acceleration = 7000; // Normal acceleration mm/s^2
-float max_jerk = 20*60;
+float max_xy_jerk = 20.0*60;
+float max_z_jerk = 0.4*60;
 float max_start_speed_units_per_second[] = {10.0,10.0,0.2,10.0};
 long max_acceleration_units_per_sq_second[] = {500,500,50,500}; // X, Y, Z and E max acceleration in mm/s^2 for printing moves or retracts
 #endif

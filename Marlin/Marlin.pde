@@ -28,7 +28,7 @@
 #include "Marlin.h"
 #include "speed_lookuptable.h"
 
-char version_string[] = "0.9.3L";
+char version_string[] = "0.9.5L";
 
 #ifdef SDSUPPORT
 #include "SdFat.h"
@@ -883,6 +883,7 @@ inline void process_commands()
         axis_relative_modes[3] = true;
         break;
       case 84:
+        st_synchronize(); // wait for all movements to finish
         if(code_seen('S')){ stepper_inactive_time = code_value() * 1000; }
         else{ disable_x(); disable_y(); disable_z(); disable_e(); }
         break;
@@ -1358,7 +1359,6 @@ void calculate_trapezoid_for_block(block_t *block, float entry_speed, float exit
   float exit_factor = exit_speed / block->nominal_speed;
   long initial_rate = ceil(block->nominal_rate*entry_factor);
   long final_rate = ceil(block->nominal_rate*exit_factor);
-  
 #ifdef ADVANCE
   long initial_advance = block->advance*entry_factor*entry_factor;
   long final_advance = block->advance*exit_factor*exit_factor;
@@ -1372,7 +1372,6 @@ void calculate_trapezoid_for_block(block_t *block, float entry_speed, float exit
   long acceleration = block->acceleration;
   long accelerate_steps = estimate_acceleration_distance(initial_rate, block->nominal_rate, acceleration);
   long decelerate_steps = estimate_acceleration_distance(final_rate, block->nominal_rate, acceleration);
-
   // Calculate the size of Plateau of Nominal Rate. 
   long plateau_steps = block->step_event_count-accelerate_steps-decelerate_steps;
 
@@ -1416,15 +1415,15 @@ inline float max_allowable_speed(float acceleration, float target_velocity, floa
 inline float junction_jerk(block_t *before, block_t *after) {
   return(sqrt(
     pow((before->speed_x-after->speed_x), 2)+
-    pow((before->speed_y-after->speed_y), 2)+
-    pow((before->speed_z-after->speed_z)*axis_steps_per_unit[Z_AXIS]/axis_steps_per_unit[X_AXIS], 2)));
+    pow((before->speed_y-after->speed_y), 2)));
 }
 
 // Return the safe speed which is max_jerk/2, e.g. the 
 // speed under which you cannot exceed max_jerk no matter what you do.
 float safe_speed(block_t *block) {
   float safe_speed;
-  safe_speed = max_jerk/2;  
+  safe_speed = max_xy_jerk/2;  
+  if(abs(block->speed_z) > max_z_jerk/2) safe_speed = max_z_jerk/2;
   if (safe_speed > block->nominal_speed) safe_speed = block->nominal_speed;
   return safe_speed;  
 }
@@ -1452,9 +1451,12 @@ void planner_reverse_pass_kernel(block_t *previous, block_t *current, block_t *n
     if((previous->steps_x == 0) && (previous->steps_y == 0)) {
       entry_speed = safe_speed(current);
     }
-    else if (jerk > max_jerk) {
-      entry_speed = (max_jerk/jerk) * entry_speed;
+    else if (jerk > max_xy_jerk) {
+      entry_speed = (max_xy_jerk/jerk) * entry_speed;
     } 
+    if(abs(previous->speed_z - current->speed_z) > max_z_jerk) {
+      entry_speed = (max_z_jerk/abs(previous->speed_z - current->speed_z)) * entry_speed;
+    }
     // If the required deceleration across the block is too rapid, reduce the entry_factor accordingly.
     if (entry_speed > exit_speed) {
       float max_entry_speed = max_allowable_speed(-acceleration,exit_speed, current->millimeters);
@@ -1477,16 +1479,16 @@ void planner_reverse_pass() {
   block_t *block[3] = {
     NULL, NULL, NULL  };
   while(block_index != block_buffer_tail) {    
-    block_index--;
-    if(block_index < 0) {
-      block_index = BLOCK_BUFFER_SIZE-1;
-    }
     block[2]= block[1];
     block[1]= block[0];
     block[0] = &block_buffer[block_index];
     planner_reverse_pass_kernel(block[0], block[1], block[2]);
+    block_index--;
+    if(block_index < 0) {
+      block_index = BLOCK_BUFFER_SIZE-1;
+    }
   }
-  planner_reverse_pass_kernel(NULL, block[0], block[1]);
+//  planner_reverse_pass_kernel(NULL, block[0], block[1]);
 }
 
 // The kernel called by planner_recalculate() when scanning the plan from first to last entry.
@@ -1931,6 +1933,7 @@ inline void trapezoid_generator_reset() {
   final_advance = current_block->final_advance;
   deceleration_time = 0;
   advance_rate = current_block->advance_rate;
+  
   // step_rate to timer interval
   acc_step_rate = initial_rate;
   acceleration_time = calc_timer(acc_step_rate);
