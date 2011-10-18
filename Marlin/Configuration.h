@@ -11,7 +11,7 @@
 // Sanguinololu 1.2 and above = 62
 // Gen 3 Plus = 21
 // gen 3  Monolithic Electronics = 22
-#define MOTHERBOARD 5 
+#define MOTHERBOARD 33 
 
 //// Thermistor settings:
 // 1 is 100k thermistor

@@ -28,7 +28,7 @@
 #include "Marlin.h"
 #include "speed_lookuptable.h"
 
-char version_string[] = "0.9.9L";
+char version_string[] = "0.9.10L";
 
 #ifdef SDSUPPORT
 #include "SdFat.h"
@@ -1515,19 +1515,16 @@ void planner_reverse_pass_kernel(block_t *previous, block_t *current, block_t *n
 // implements the reverse pass.
 void planner_reverse_pass() {
   char block_index = block_buffer_head;
-  block_t *block[3] = {
-    NULL, NULL, NULL  };
+  block_t *block[3] = { NULL, NULL, NULL };
   while(block_index != block_buffer_tail) {    
+    block_index--;
+    if(block_index < 0) block_index = BLOCK_BUFFER_SIZE-1;
     block[2]= block[1];
     block[1]= block[0];
     block[0] = &block_buffer[block_index];
     planner_reverse_pass_kernel(block[0], block[1], block[2]);
-    block_index--;
-    if(block_index < 0) {
-      block_index = BLOCK_BUFFER_SIZE-1;
-    }
   }
-//  planner_reverse_pass_kernel(NULL, block[0], block[1]);
+  planner_reverse_pass_kernel(NULL, block[0], block[1]);
 }
 
 // The kernel called by planner_recalculate() when scanning the plan from first to last entry.
@@ -1748,7 +1745,7 @@ void plan_buffer_line(float x, float y, float z, float e, float feed_rate) {
   // Compute the acceleration rate for the trapezoid generator. 
   float travel_per_step = block->millimeters/block->step_event_count;
   if(block->steps_x == 0 && block->steps_y == 0 && block->steps_z == 0) {
-    block->acceleration = ceil( (retract_acceleration)/travel_per_step); // convert to: acceleration steps/sec^2
+    block->acceleration_st = ceil( (retract_acceleration)/travel_per_step); // convert to: acceleration steps/sec^2
   }
   else {
     block->acceleration_st = ceil( (acceleration)/travel_per_step);      // convert to: acceleration steps/sec^2
