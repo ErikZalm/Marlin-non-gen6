@@ -1,3 +1,27 @@
+A new Marlin beta version is available. 1 version for Gen6, Ultimaker, RAMPS and SL.
+
+You can find this version in:
+https://github.com/ErikZalm/Marlin/tree/Marlin_v1
+
+We also made a tag that you can download.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 This is a light version of Marlin for non gen6 boards.
 It has no interrupt based temperature protection and extruder advance.
 
